@@ -1,0 +1,78 @@
+Repair this historical Python CLI bug: nested command group completion.
+Source issue: https://github.com/pallets/click/issues/2906
+
+## Summary
+
+In Click 8.2.0, completion for commands in nested groups doesn't work as expected anymore. Instead of completing command options and/or arguments, completion infinitely repeats the command names for the group.
+
+## Example program
+
+Inspired by the example in #2847 
+
+Save the following as `bin/nested` in a virtualenv
+
+```python
+#!/usr/bin/env python
+
+# nested
+
+import click
+
+
+def _complete_arg(ctx, _, incomplete):
+    values = [
+        "foo",
+        "bar",
+        "foobar",
+        "baz",
+    ]
+    return [v for v in values if v.startswith(incomplete)]
+
+@click.group
+def main():
+    ...
+
+@main.group
+def subgroup():
+    ...
+
+@subgroup.command
+@click.option("--name", help="Name of something.")
+@click.argument("arg", shell_complete=_complete_arg)
+def compile(name: str | None, arg: str) -> None:
+    """Test argument completion in nested groups."""
+    click.echo(f"{name=} {arg=}")
+
+
+if __name__ == "__main__":
+    main.main()
+```
+
+Run `eval "$(_NESTED_COMPLETE=bash_source nested)"` to setup completion (for bash)
+
+## Completion behavior
+
+|Prefix|8.2.0 completion suggestions (unexpected behavior)|8.1.8 completion suggestions (expected behavior)|
+|-|-|-|
+|`nested`|`subgroup`|`subgroup`|
+|`nested subgroup`|`compile`|`compile`|
+|`nested subgroup compile`|`compile`|`foo     bar     foobar  baz`|
+|`nested subgroup compile f`|none|`foo     foobar`|
+|`nested subgroup compile --`|`--help`|`--name  --help`|
+
+## Environment
+
+- Python version: Python 3.12.3
+- Click version: 8.2.0
+
+
+Requirements:
+- First run python -m pytest -q tests/test_issue_2906_repro.py and observe the failure before editing.
+- Fix the library, preserving nested groups, chained commands and ordinary option/argument completion.
+- Completion must not execute command callbacks.
+- Preserve existing tests. Add focused regression cases only in NEW tests/test_issue_*.py.
+- After your last edit run the public reproduction and python -m pytest -q tests.
+- Finish with changed behavior, executed checks and remaining limitations. Last line STATUS: DONE only when complete, otherwise STATUS: BLOCKED.
+
+Input contract clarification:
+The issue table mixed a whole shell word with the backend incomplete-word argument. Distinguish a completed --name=n token from a current --name=n prefix. Do not require ShellComplete.get_completions([subgroup, compile], --name=n) to return positional argument choices. For completion of the next positional argument, include --name=n in the completed args and use an empty incomplete word. Do not broaden ordinary option completion to satisfy an incorrectly tokenized generated test. All nested and chained completion requirements remain unchanged. This clarification supplies no library implementation or patch.

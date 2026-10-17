@@ -2780,7 +2780,9 @@ class Option(Parameter):
         # The option is explicitly not a flag. But we do not know yet if it needs a
         # value or not. So we look at the default value to determine it.
         elif is_flag is False and not self._flag_needs_value:
-            self._flag_needs_value = self.default is UNSET
+            # When a flag_value is set, the option can be used without a value
+            # and falls back to it; otherwise, the default determines it.
+            self._flag_needs_value = self.default is UNSET or flag_value is not UNSET
 
         if is_flag:
             # Set missing default for flags if not explicitly required or prompted.

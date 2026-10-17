@@ -567,7 +567,7 @@ def _resolve_context(
                     with cmd.make_context(
                         name, args, parent=ctx, resilient_parsing=True
                     ) as sub_ctx:
-                        args = ctx._protected_args + ctx.args
+                        args = sub_ctx._protected_args + sub_ctx.args
                         ctx = sub_ctx
                 else:
                     sub_ctx = ctx
@@ -586,7 +586,7 @@ def _resolve_context(
                             allow_interspersed_args=False,
                             resilient_parsing=True,
                         ) as sub_sub_ctx:
-                            args = sub_ctx.args
+                            args = sub_sub_ctx.args
                             sub_ctx = sub_sub_ctx
 
                     ctx = sub_ctx

@@ -1,0 +1,17 @@
+Repair a real Click regression reported in https://github.com/pallets/click/issues/3084.
+
+A command option configured with is_flag=False and flag_value supports an optional value:
+omitting the option uses default; passing the option alone uses flag_value; passing a value uses that value.
+In this snapshot the bare option incorrectly raises a missing argument error.
+A public reproduction is tests/test_issue_3084_repro.py.
+
+Preserve existing public interfaces and all original tests. Add regression tests in NEW test files.
+Preserve string and integer conversion, explicit option values, and ordinary options requiring values.
+Modify only src/click/ Python files and new tests/test_issue_*.py files.
+Do not download newer Click versions or use the upstream fix; investigate this snapshot.
+Deliver a patch, test commands/results, and any remaining limitations.
+The test runner must import this workspace's src/click rather than a globally installed package.
+
+Run from this workspace with:
+PYTHONPATH=src PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q -p no:cacheprovider tests/test_issue_3084_repro.py
+PYTHONPATH=src PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q -p no:cacheprovider tests

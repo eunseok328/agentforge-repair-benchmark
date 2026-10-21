@@ -1,0 +1,4 @@
+Historical Click repair task 2811.
+
+Generated help options must respect eager callback ordering. Help before another eager option wins; that eager option before help wins. Help beats non-eager options in either order. Preserve custom help names and normal callbacks.
+Preserve existing tests and add a new durable regression test.

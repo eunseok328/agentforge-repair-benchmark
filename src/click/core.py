@@ -129,6 +129,30 @@ def iter_params_for_processing(
 
         return not item.is_eager, idx
 
+    # The help option is generated and appended after the declared params,
+    # so it is never in the invocation order. Give it the position of the
+    # first help option name found on the command line so that it competes
+    # with other eager options in the order they were given.
+    from .decorators import HelpOption
+
+    help_idx = float("inf")
+
+    for idx, param in enumerate(invocation_order):
+        if isinstance(param, HelpOption):
+            help_idx = idx
+            break
+
+    def sort_key(item: "Parameter") -> t.Tuple[bool, float]:
+        if isinstance(item, HelpOption):
+            idx = help_idx
+        else:
+            try:
+                idx = invocation_order.index(item)
+            except ValueError:
+                idx = float("inf")
+
+        return not item.is_eager, idx
+
     return sorted(declaration_order, key=sort_key)
 
 
